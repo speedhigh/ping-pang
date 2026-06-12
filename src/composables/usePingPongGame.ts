@@ -132,7 +132,10 @@ export function usePingPongGame() {
     patchState({ scoreA: nextA, scoreB: nextB })
 
     const winner = isGameWon(nextA, nextB)
-    if (!winner) return
+    if (!winner) {
+      navigator.vibrate?.(8)
+      return
+    }
 
     handleGameEnd(winner)
   }
