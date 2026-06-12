@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 defineProps<{
   title?: string
 }>()
@@ -6,11 +8,16 @@ defineProps<{
 const emit = defineEmits<{
   settings: []
 }>()
+
+const rootRef = ref<HTMLElement | null>(null)
+
+defineExpose({ rootRef })
 </script>
 
 <template>
   <header
-    class="relative z-40 flex h-12 shrink-0 items-center justify-between bg-[var(--header-bg)] px-4 pt-[env(safe-area-inset-top)] text-[var(--player-text)]"
+    ref="rootRef"
+    class="relative z-40 flex h-12 shrink-0 items-center justify-between bg-[var(--header-bg)] px-4 pt-[env(safe-area-inset-top)] text-[var(--header-text)]"
     style="min-height: calc(3rem + env(safe-area-inset-top))"
   >
     <div class="w-10" aria-hidden="true" />

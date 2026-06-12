@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import ConfirmDialog from './ConfirmDialog.vue'
 import type { MatchFormat, Participant, PlayerId } from '../types/game'
 import type { ThemeConfig } from '../themes/config'
 import {
@@ -30,6 +31,7 @@ const emit = defineEmits<{
 }>()
 
 const localNames = ref({ A: '', B: '' })
+const resetMatchConfirmOpen = ref(false)
 
 const directionRows: { target: LayoutDirectionTarget; label: string }[] = [
   { target: 'scoreA', label: '选手 A 分数' },
@@ -42,6 +44,9 @@ const directionRows: { target: LayoutDirectionTarget; label: string }[] = [
 watch(
   () => props.open,
   (open) => {
+    if (!open) {
+      resetMatchConfirmOpen.value = false
+    }
     if (open) {
       localNames.value = {
         A: props.participants.find((p) => p.id === 'A')?.name ?? '选手A',
@@ -54,6 +59,12 @@ watch(
 function saveNames() {
   emit('update:participant', 'A', localNames.value.A)
   emit('update:participant', 'B', localNames.value.B)
+  emit('close')
+}
+
+function confirmResetMatch() {
+  resetMatchConfirmOpen.value = false
+  emit('resetMatch')
   emit('close')
 }
 
@@ -261,7 +272,7 @@ const formatOptions: { value: MatchFormat; label: string }[] = [
             <button
               type="button"
               class="flex-1 rounded-full border border-[var(--panel-border)] py-2.5 text-sm text-[var(--panel-muted)]"
-              @click="emit('resetMatch'); emit('close')"
+              @click="resetMatchConfirmOpen = true"
             >
               重置比赛
             </button>
@@ -276,5 +287,14 @@ const formatOptions: { value: MatchFormat; label: string }[] = [
         </footer>
       </div>
     </div>
+
+    <ConfirmDialog
+      :open="resetMatchConfirmOpen"
+      title="重置比赛"
+      message="将清空全部比分、局数与比赛记录，是否继续？"
+      confirm-label="确认重置"
+      @confirm="confirmResetMatch"
+      @cancel="resetMatchConfirmOpen = false"
+    />
   </Teleport>
 </template>

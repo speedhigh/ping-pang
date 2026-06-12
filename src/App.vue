@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, watchEffect } from 'vue'
 import { useWakeLock } from '@vueuse/core'
+import ConfirmDialog from './components/ConfirmDialog.vue'
 import MatchVictoryOverlay from './components/MatchVictoryOverlay.vue'
 import Scoreboard from './components/Scoreboard.vue'
 import ScoreboardHeader from './components/ScoreboardHeader.vue'
@@ -8,6 +9,7 @@ import SettingsPanel from './components/SettingsPanel.vue'
 import WinOverlay from './components/WinOverlay.vue'
 import { usePingPongGame } from './composables/usePingPongGame'
 import { useTheme } from './composables/useTheme'
+import { useTableChromeOffset } from './composables/useTableChromeOffset'
 import { playVictorySound, unlockVictorySound } from './composables/useVictorySound'
 import type { MatchFormat, PlayerId } from './types/game'
 import { applyOverlayStatusBar, getTheme, restoreStatusBar } from './themes/config'
@@ -50,6 +52,10 @@ const { themes, themeId, setThemeId } = useTheme({
 useWakeLock()
 
 const settingsOpen = ref(false)
+const resetGameConfirmOpen = ref(false)
+const headerRef = ref<InstanceType<typeof ScoreboardHeader> | null>(null)
+
+const { chromeOffset } = useTableChromeOffset(() => headerRef.value?.rootRef ?? null)
 
 const headerTitle = computed(() =>
   matchFormat.value === 'none' ? '快速比赛' : matchFormatLabel(matchFormat.value),
@@ -72,7 +78,11 @@ const showSimpleWin = computed(() => {
 })
 
 const overlayOpen = computed(
-  () => showMatchVictory.value || showSimpleWin.value || settingsOpen.value,
+  () =>
+    showMatchVictory.value
+    || showSimpleWin.value
+    || settingsOpen.value
+    || resetGameConfirmOpen.value,
 )
 
 watchEffect(() => {
@@ -120,14 +130,24 @@ function onFirstServer(id: PlayerId) {
 function onLayoutDirection(target: LayoutDirectionTarget, direction: LayoutDirection) {
   setLayoutDirection(target, direction)
 }
+
+function requestResetGame() {
+  resetGameConfirmOpen.value = true
+}
+
+function confirmResetGame() {
+  resetGameConfirmOpen.value = false
+  resetGame()
+}
 </script>
 
 <template>
   <div class="flex h-[100dvh] flex-col overflow-hidden">
-    <ScoreboardHeader :title="headerTitle" @settings="settingsOpen = true" />
+    <ScoreboardHeader ref="headerRef" :title="headerTitle" @settings="settingsOpen = true" />
 
     <div class="min-h-0 flex-1">
       <Scoreboard
+        :chrome-offset="chromeOffset"
         :layout-directions="layoutDirections"
         :name-a="participantName('A')"
         :name-b="participantName('B')"
@@ -142,9 +162,18 @@ function onLayoutDirection(target: LayoutDirectionTarget, direction: LayoutDirec
         :is-locked="isLocked"
         @score="onScore"
         @undo="undo"
-        @reset-game="resetGame"
+        @reset-game="requestResetGame"
       />
     </div>
+
+    <ConfirmDialog
+      :open="resetGameConfirmOpen"
+      title="重置本局"
+      message="将清零当前局比分并回到 0 : 0，是否继续？"
+      confirm-label="确认重置"
+      @confirm="confirmResetGame"
+      @cancel="resetGameConfirmOpen = false"
+    />
 
     <MatchVictoryOverlay
       v-if="showMatchVictory && winEvent"
@@ -153,6 +182,7 @@ function onLayoutDirection(target: LayoutDirectionTarget, direction: LayoutDirec
       :name-a="participantName('A')"
       :name-b="participantName('B')"
       :match-format="matchFormat as 'bestOf3' | 'bestOf5'"
+      :theme-id="themeId"
       @new-match="startNewMatch"
     />
 

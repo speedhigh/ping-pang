@@ -6,6 +6,7 @@ import type { LayoutDirections } from '../utils/layoutDirection'
 
 defineProps<{
   layoutDirections: LayoutDirections
+  chromeOffset: number
   nameA: string
   nameB: string
   scoreA: number
@@ -27,8 +28,11 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="relative h-full w-full">
-    <div class="grid h-full w-full grid-rows-2">
+  <div
+    class="relative h-full w-full"
+    :style="{ '--table-chrome-offset': `${chromeOffset}px` }"
+  >
+    <div class="table-split grid h-full w-full">
       <PlayerHalf
         player-id="A"
         :text-direction="layoutDirections.scoreA"
@@ -59,3 +63,11 @@ const emit = defineEmits<{
     />
   </div>
 </template>
+
+<style scoped>
+.table-split {
+  grid-template-rows:
+    calc(50% - var(--table-chrome-offset, 0px) / 2)
+    calc(50% + var(--table-chrome-offset, 0px) / 2);
+}
+</style>

@@ -27,7 +27,7 @@ const gameWinsBRotateClass = computed(() => directionRotateClass(props.layoutDir
 
 <template>
   <div
-    class="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
+    class="hub-anchor pointer-events-none absolute left-1/2 z-20 -translate-x-1/2 -translate-y-1/2"
   >
     <div class="flex items-center gap-2.5">
       <div
@@ -119,6 +119,10 @@ const gameWinsBRotateClass = computed(() => directionRotateClass(props.layoutDir
 </template>
 
 <style scoped>
+.hub-anchor {
+  top: calc(50% - var(--table-chrome-offset, 0px) / 2);
+}
+
 .series-score {
   transform-origin: center center;
 }

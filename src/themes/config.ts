@@ -100,6 +100,7 @@ export function applyThemeToDocument(theme: ThemeConfig) {
   root.style.setProperty('--player-a-bg', theme.playerA)
   root.style.setProperty('--player-b-bg', theme.playerB)
   root.style.setProperty('--header-bg', theme.playerA)
+  root.style.setProperty('--header-text', '#ffffff')
   root.style.setProperty('--hub-bg', theme.hubBg)
   root.style.setProperty('--hub-text', theme.hubText)
   root.style.setProperty('--hub-muted', theme.hubMuted)
