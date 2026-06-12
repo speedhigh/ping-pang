@@ -1,0 +1,104 @@
+export interface ThemeConfig {
+  id: string
+  name: string
+  playerA: string
+  playerB: string
+  hubBg: string
+  hubText: string
+  hubMuted: string
+  overlayBg: string
+  panelBg: string
+  panelText: string
+  panelMuted: string
+  panelBorder: string
+}
+
+export const THEMES: ThemeConfig[] = [
+  {
+    id: 'arena-duo',
+    name: 'Arena Duo',
+    playerA: '#E84855',
+    playerB: '#3B82C4',
+    hubBg: '#FFFFFF',
+    hubText: '#1C1C1E',
+    hubMuted: '#8E8E93',
+    overlayBg: 'rgba(0, 0, 0, 0.55)',
+    panelBg: '#1C1C1E',
+    panelText: '#FFFFFF',
+    panelMuted: 'rgba(255, 255, 255, 0.55)',
+    panelBorder: 'rgba(255, 255, 255, 0.12)',
+  },
+  {
+    id: 'classic-arena',
+    name: 'Classic Arena',
+    playerA: '#2D8B57',
+    playerB: '#2A6B7C',
+    hubBg: '#F5F7F6',
+    hubText: '#1A2E28',
+    hubMuted: '#6B7F78',
+    overlayBg: 'rgba(10, 20, 16, 0.62)',
+    panelBg: '#142420',
+    panelText: '#FFFFFF',
+    panelMuted: 'rgba(255, 255, 255, 0.55)',
+    panelBorder: 'rgba(255, 255, 255, 0.1)',
+  },
+  {
+    id: 'terracotta-slate',
+    name: 'Terracotta',
+    playerA: '#C4684A',
+    playerB: '#5A7282',
+    hubBg: '#FAF8F6',
+    hubText: '#2C2420',
+    hubMuted: '#8A7F78',
+    overlayBg: 'rgba(30, 24, 20, 0.58)',
+    panelBg: '#2A2420',
+    panelText: '#FFFFFF',
+    panelMuted: 'rgba(255, 255, 255, 0.55)',
+    panelBorder: 'rgba(255, 255, 255, 0.1)',
+  },
+  {
+    id: 'plum-steel',
+    name: 'Plum Steel',
+    playerA: '#7B5E8A',
+    playerB: '#4A6572',
+    hubBg: '#F7F6F8',
+    hubText: '#2A2430',
+    hubMuted: '#857A8F',
+    overlayBg: 'rgba(20, 16, 28, 0.58)',
+    panelBg: '#221E28',
+    panelText: '#FFFFFF',
+    panelMuted: 'rgba(255, 255, 255, 0.55)',
+    panelBorder: 'rgba(255, 255, 255, 0.1)',
+  },
+]
+
+export const THEME_IDS = THEMES.map((t) => t.id)
+
+export type ThemeId = (typeof THEME_IDS)[number]
+
+export function getTheme(id: string): ThemeConfig {
+  return THEMES.find((t) => t.id === id) ?? THEMES[0]!
+}
+
+export function applyThemeToDocument(theme: ThemeConfig) {
+  const root = document.documentElement
+  root.dataset.theme = theme.id
+  root.style.setProperty('--player-a-bg', theme.playerA)
+  root.style.setProperty('--player-b-bg', theme.playerB)
+  root.style.setProperty('--header-bg', theme.playerA)
+  root.style.setProperty('--hub-bg', theme.hubBg)
+  root.style.setProperty('--hub-text', theme.hubText)
+  root.style.setProperty('--hub-muted', theme.hubMuted)
+  root.style.setProperty('--overlay-bg', theme.overlayBg)
+  root.style.setProperty('--panel-bg', theme.panelBg)
+  root.style.setProperty('--panel-text', theme.panelText)
+  root.style.setProperty('--panel-muted', theme.panelMuted)
+  root.style.setProperty('--panel-border', theme.panelBorder)
+  root.style.setProperty('--player-text', '#ffffff')
+  root.style.setProperty('--player-text-muted', 'rgba(255, 255, 255, 0.82)')
+  root.style.setProperty('--hub-shadow', '0 8px 32px rgba(0, 0, 0, 0.22)')
+  root.style.setProperty(
+    '--score-box-gradient',
+    `linear-gradient(180deg, ${theme.playerA} 0%, ${theme.playerB} 100%)`,
+  )
+}

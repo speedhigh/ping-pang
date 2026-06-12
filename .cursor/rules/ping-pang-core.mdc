@@ -1,0 +1,32 @@
+---
+description: Ping-Pang 产品定位、MVP 边界与设计优先级
+alwaysApply: true
+---
+
+# Ping-Pang 核心产品约束
+
+## 定位
+
+移动端优先 PWA 乒乓球记分器。竖屏、球桌旁、单手快速记分。设计优先级 **高于** 功能数量。
+
+## 技术栈
+
+Vue 3 + TypeScript + Tailwind + VueUse + Vite + PWA + LocalStorage。Composition API。
+
+## MVP 必做
+
+- 选手 A vs B（默认名 **小乒** / **小乓**，可自定义）
+- 球桌式布局：上半 A、中间球网、下半 B；点击半区 +1
+- 11 分制、领先 2 分获胜；10:10 后每人发 1 球
+- 发球轮 UI 提醒（描边或微光，Undo 同步）
+- 可选大局：不开启 / 三局两胜 / 五局三胜；小局 Win 与大局 Win 两级反馈
+- Undo、重置、编辑比分（边缘弱化入口）
+- LocalStorage 持久化、PWA、Wake Lock
+
+## MVP 不做（架构预留）
+
+组队、多队、抽签匹配、历史、语音报分、分享、云同步、自定义分数规则。
+
+## 术语
+
+当前用 **选手**，不用「队伍」。日后扩展组队时再引入 Team / Member。

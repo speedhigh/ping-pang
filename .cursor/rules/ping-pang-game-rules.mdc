@@ -1,0 +1,41 @@
+---
+description: Ping-Pang 乒乓球计分与发球规则（实现须一致）
+globs: "**/composables/**,**/utils/**,**/*.test.ts"
+alwaysApply: false
+---
+
+# 比赛规则
+
+## 小局
+
+11 分制，领先 2 分胜。例：11:9 结束；11:10 继续；12:10 结束。
+
+## 发球
+
+设 `T = scoreA + scoreB`（已结束分数之和），`firstServer` 为本局首球方：
+
+```typescript
+function getCurrentServer(scoreA, scoreB, firstServer) {
+  const T = scoreA + scoreB
+  const other = firstServer === 'A' ? 'B' : 'A'
+  const isDeuce = scoreA >= 10 && scoreB >= 10
+
+  if (!isDeuce) {
+    // 常规：每 2 分换发
+    return Math.floor(T / 2) % 2 === 0 ? firstServer : other
+  }
+  // 10:10 起：每 1 分换发，从「常规规则下 T=20 时该发球的选手」起交替
+  const serverAt1020 = Math.floor(20 / 2) % 2 === 0 ? firstServer : other
+  return (T - 20) % 2 === 0 ? serverAt1020 : (serverAt1020 === 'A' ? 'B' : 'A')
+}
+```
+
+单测必覆盖：0:0、1:0、2:0、10:9、10:10、11:10、10:11、Undo 回退。
+
+## 大局（可选）
+
+默认不开启。用户选择三局两胜 / 五局三胜后才多局比拼。每小局独立计分；局间更新 `firstServer`（建议交替）。小局结束 → 小局 Win；系列赛结束 → 大局 Win。
+
+## Undo
+
+撤销上一分后，比分与 `currentServer` 必须同步回退。

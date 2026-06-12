@@ -1,0 +1,33 @@
+---
+description: Ping-Pang 视觉与交互设计规范
+globs: "**/*.{vue,css,scss}"
+alwaysApply: false
+---
+
+# 设计系统
+
+## 气质
+
+Minimal · Premium · Calm · Modern · Elegant · Athletic
+
+参考：Apple Fitness、Linear、Notion Calendar。整体像**真实高级球台**。
+
+## 禁止
+
+儿童风、游戏 UI、电竞风、高饱和撞色、霓虹/荧光/RGB、廉价运动 App、传统红蓝对抗色。
+
+## 配色
+
+低饱和、高级灰、莫兰迪感、深色系优先。主题有**氛围**（如 Classic Arena 深墨绿），不是简单换色。
+
+## 布局
+
+整页 = 抽象球桌。主操作区占满，**无需找按钮**。次要操作（Undo、重置、编辑、设置）靠边、弱化、防误触。
+
+## 发球提醒
+
+当前发球方半区：克制描边或低饱和微光。非发球方保持 calm。禁止 flashy 动画。
+
+## 胜利反馈
+
+参考 Apple Fitness 完成目标，非老虎机。小局 Win < 大局 Win 强度。可：轻震动、半区放大、柔和过渡、克制 confetti、🏆 弹窗。

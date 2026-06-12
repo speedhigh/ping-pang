@@ -1,0 +1,35 @@
+---
+description: Ping-Pang 代码架构与扩展性约定
+globs: "**/*.{ts,vue}"
+alwaysApply: false
+---
+
+# 架构
+
+## 逻辑与 UI 分离
+
+比赛规则、发球计算、胜负判定、持久化 → `usePingPongGame()`（或 `composables/` 下同类 composable）。Vue 组件只负责展示与交互。
+
+## 可复用组件
+
+至少抽离：`PlayerHalf`（计分半区 + 发球态）、`NetDivider`、`PlayerName`、`WinOverlay`（支持小局/大局两级）、`SettingsPanel`。
+
+## 扩展预留
+
+```typescript
+// 选手抽象，日后可扩展 Team + members
+interface Participant {
+  id: string
+  name: string
+}
+```
+
+不在 composable 里硬编码「仅两人」；用 `participants: [A, B]` 驱动 UI。
+
+## 状态持久化
+
+LocalStorage 存：小局比分、大局局数与胜局数、是否启用大局及赛制、选手名、首球发球方、主题、推导发球所需字段。恢复后重算 `currentServer`。
+
+## 工具
+
+优先 VueUse（`useLocalStorage`、`useWakeLock` 等）。样式 Tailwind + CSS 变量承载主题 token。

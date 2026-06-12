@@ -1,0 +1,74 @@
+@import 'tailwindcss';
+
+/* 主题 token 默认值，运行时由 applyThemeToDocument 覆盖 */
+:root {
+  --player-a-bg: #e84855;
+  --player-b-bg: #3b82c4;
+  --player-text: #ffffff;
+  --player-text-muted: rgba(255, 255, 255, 0.82);
+  --header-bg: var(--player-a-bg);
+  --hub-bg: #ffffff;
+  --hub-text: #1c1c1e;
+  --hub-muted: #8e8e93;
+  --hub-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  --score-box-gradient: linear-gradient(180deg, var(--player-a-bg) 0%, var(--player-b-bg) 100%);
+  --overlay-bg: rgba(0, 0, 0, 0.55);
+  --panel-bg: #1c1c1e;
+  --panel-text: #ffffff;
+  --panel-muted: rgba(255, 255, 255, 0.55);
+  --panel-border: rgba(255, 255, 255, 0.12);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  background: var(--player-b-bg);
+  font-family:
+    system-ui,
+    -apple-system,
+    'SF Pro Display',
+    'Segoe UI',
+    sans-serif;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1.8s ease-in-out infinite;
+}
+
+.dir-rotate-left {
+  transform: rotate(-90deg);
+}
+
+.dir-rotate-right {
+  transform: rotate(90deg);
+}
+
+.dir-rotate-down {
+  transform: rotate(180deg);
+}
