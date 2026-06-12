@@ -33,7 +33,7 @@ const ariaLabel = computed(() => {
     type="button"
     class="player-half relative flex h-full w-full min-h-0 items-center justify-center overflow-hidden border-0 p-0 outline-none"
     :class="[
-      playerId === 'A' ? 'bg-[var(--player-a-bg)]' : 'bg-[var(--player-b-bg)]',
+      playerId === 'A' ? 'bg-[var(--player-a-bg)]' : 'bg-[var(--player-b-bg)] player-half--safe-bottom',
       { 'player-half--game-point': hasGamePoint },
     ]"
     :aria-label="ariaLabel"
@@ -76,6 +76,10 @@ const ariaLabel = computed(() => {
 .player-half {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
+}
+
+.player-half--safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .player-half__score-block {

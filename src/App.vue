@@ -142,7 +142,7 @@ function confirmResetGame() {
 </script>
 
 <template>
-  <div class="flex h-[100dvh] flex-col overflow-hidden">
+  <div class="app-shell relative z-[1] flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden">
     <ScoreboardHeader ref="headerRef" :title="headerTitle" @settings="settingsOpen = true" />
 
     <div class="min-h-0 flex-1">
