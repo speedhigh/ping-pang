@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import CenterHub from './CenterHub.vue'
-import PlayerHalf from './PlayerHalf.vue'
 import type { MatchFormat, PlayerId } from '../types/game'
 import type { LayoutDirections } from '../utils/layoutDirection'
 
-defineProps<{
+const props = defineProps<{
   layoutDirections: LayoutDirections
   chromeOffset: number
   nameA: string
@@ -17,6 +15,8 @@ defineProps<{
   currentGameIndex: number
   gameWinsA: number
   gameWinsB: number
+  sidesSwapped: boolean
+  scoreNudgeTop: number
   isLocked: boolean
 }>()
 
@@ -25,6 +25,29 @@ const emit = defineEmits<{
   undo: []
   resetGame: []
 }>()
+
+const topPlayerId = computed<PlayerId>(() => (props.sidesSwapped ? 'B' : 'A'))
+const bottomPlayerId = computed<PlayerId>(() => (props.sidesSwapped ? 'A' : 'B'))
+
+const topNudgePx = computed(() =>
+  Math.round(props.chromeOffset * 0.22 + props.scoreNudgeTop),
+)
+
+function playerName(id: PlayerId): string {
+  return id === 'A' ? props.nameA : props.nameB
+}
+
+function playerScore(id: PlayerId): number {
+  return id === 'A' ? props.scoreA : props.scoreB
+}
+
+function playerServing(id: PlayerId): boolean {
+  return id === 'A' ? props.isServingA : props.isServingB
+}
+
+function scoreDirection(id: PlayerId) {
+  return id === 'A' ? props.layoutDirections.scoreA : props.layoutDirections.scoreB
+}
 </script>
 
 <template>
@@ -34,19 +57,22 @@ const emit = defineEmits<{
   >
     <div class="table-split grid h-full w-full">
       <PlayerHalf
-        player-id="A"
-        :text-direction="layoutDirections.scoreA"
-        :name="nameA"
-        :score="scoreA"
-        :is-serving="isServingA"
+        :player-id="topPlayerId"
+        half="top"
+        :nudge-px="topNudgePx"
+        :text-direction="scoreDirection(topPlayerId)"
+        :name="playerName(topPlayerId)"
+        :score="playerScore(topPlayerId)"
+        :is-serving="playerServing(topPlayerId)"
         @score="emit('score', $event)"
       />
       <PlayerHalf
-        player-id="B"
-        :text-direction="layoutDirections.scoreB"
-        :name="nameB"
-        :score="scoreB"
-        :is-serving="isServingB"
+        :player-id="bottomPlayerId"
+        half="bottom"
+        :text-direction="scoreDirection(bottomPlayerId)"
+        :name="playerName(bottomPlayerId)"
+        :score="playerScore(bottomPlayerId)"
+        :is-serving="playerServing(bottomPlayerId)"
         @score="emit('score', $event)"
       />
     </div>
@@ -57,6 +83,7 @@ const emit = defineEmits<{
       :current-game-index="currentGameIndex"
       :game-wins-a="gameWinsA"
       :game-wins-b="gameWinsB"
+      :sides-swapped="sidesSwapped"
       :is-locked="isLocked"
       @undo="emit('undo')"
       @reset-game="emit('resetGame')"

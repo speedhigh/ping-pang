@@ -42,6 +42,12 @@ export interface PersistedGameState {
   themeId: string
   layoutDirections: LayoutDirections
   completedGames: CompletedGame[]
+  /** 上下半场是否已对调显示 */
+  sidesSwapped?: boolean
+  /** 每局结束后自动交换上下半场（仅大局赛制） */
+  autoSwapSides?: boolean
+  /** 上方半场内容额外上移（px），叠加表头补偿 */
+  scoreNudgeTop?: number
   /** @deprecated 已迁移为 layoutDirections */
   viewMode?: string
 }

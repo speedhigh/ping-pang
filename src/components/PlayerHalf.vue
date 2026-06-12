@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { PlayerId } from '../types/game'
 import type { LayoutDirection } from '../utils/layoutDirection'
 import { directionRotateClass } from '../utils/layoutDirection'
@@ -11,6 +10,9 @@ const props = defineProps<{
   score: number
   isServing: boolean
   textDirection: LayoutDirection
+  /** 屏幕上的上下半场：top 会向表头方向上移 */
+  half: 'top' | 'bottom'
+  nudgePx?: number
 }>()
 
 const emit = defineEmits<{
@@ -19,6 +21,11 @@ const emit = defineEmits<{
 
 const blockRotateClass = computed(() => directionRotateClass(props.textDirection))
 const hasGamePoint = computed(() => isAtGamePoint(props.score))
+
+const contentStyle = computed(() => {
+  if (props.half !== 'top' || !props.nudgePx) return undefined
+  return { transform: `translateY(-${props.nudgePx}px)` }
+})
 
 const ariaLabel = computed(() => {
   let label = `${props.name} 得分，当前 ${props.score} 分`
@@ -42,7 +49,19 @@ const ariaLabel = computed(() => {
     <span v-if="hasGamePoint" class="player-half__burn" aria-hidden="true" />
     <span v-if="hasGamePoint" class="player-half__ember" aria-hidden="true" />
 
-    <div class="player-half__content relative z-[1] flex items-center justify-center">
+    <span
+      v-if="isServing"
+      class="serve-indicator"
+      :class="half === 'top' ? 'serve-indicator--top' : 'serve-indicator--bottom'"
+      aria-hidden="true"
+    >
+      🏓
+    </span>
+
+    <div
+      class="player-half__content relative z-[1] flex items-center justify-center transition-transform duration-200"
+      :style="contentStyle"
+    >
       <div
         class="player-half__score-block flex flex-col items-center transition-transform duration-200"
         :class="blockRotateClass"
@@ -56,15 +75,12 @@ const ariaLabel = computed(() => {
         </div>
 
         <span
-          class="player-half__name mt-1 inline-flex items-center gap-1 whitespace-nowrap text-base font-semibold leading-6 tracking-wide text-[var(--player-text-muted)]"
+          class="player-half__name mt-2 inline-flex items-center whitespace-nowrap text-xl font-semibold leading-8 tracking-wide text-[var(--player-text-muted)]"
         >
-          <span v-if="isServing" class="serve-emoji text-[1.125rem] leading-none" aria-hidden="true">
-            🏓
-          </span>
           {{ name }}
         </span>
 
-        <span v-if="hasGamePoint" class="game-point-badge mt-1.5">
+        <span v-if="hasGamePoint" class="game-point-badge mt-2">
           局点
         </span>
       </div>
@@ -87,12 +103,45 @@ const ariaLabel = computed(() => {
 }
 
 .player-half__score-slot {
-  width: clamp(5.5rem, 32vw, 9.5rem);
-  height: clamp(5.5rem, 32vw, 9.5rem);
+  width: clamp(6.75rem, 42vw, 12rem);
+  height: clamp(6.75rem, 42vw, 12rem);
 }
 
 .score-digit {
-  font-size: clamp(5.5rem, 32vw, 9.5rem);
+  font-size: clamp(6.75rem, 42vw, 12rem);
+}
+
+.serve-indicator {
+  position: absolute;
+  z-index: 2;
+  font-size: clamp(1.375rem, 4.25vw, 1.75rem);
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.28));
+  animation: serve-blink 1.85s ease-in-out infinite;
+}
+
+.serve-indicator--top {
+  right: clamp(0.875rem, 4vw, 1.25rem);
+  bottom: clamp(0.875rem, 4vw, 1.25rem);
+}
+
+.serve-indicator--bottom {
+  right: clamp(0.875rem, 4vw, 1.25rem);
+  top: clamp(0.875rem, 4vw, 1.25rem);
+}
+
+@keyframes serve-blink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.28;
+    transform: scale(0.9);
+  }
 }
 
 .player-half__burn {
@@ -128,8 +177,8 @@ const ariaLabel = computed(() => {
 
 .game-point-badge {
   border-radius: 9999px;
-  padding: 0.125rem 0.75rem;
-  font-size: 0.75rem;
+  padding: 0.1875rem 0.875rem;
+  font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #fff;
@@ -192,7 +241,8 @@ const ariaLabel = computed(() => {
   .player-half--game-point,
   .player-half__burn,
   .player-half__ember,
-  .game-point-badge {
+  .game-point-badge,
+  .serve-indicator {
     animation: none;
   }
 
@@ -202,6 +252,10 @@ const ariaLabel = computed(() => {
 
   .player-half__ember {
     opacity: 0.3;
+  }
+
+  .serve-indicator {
+    opacity: 1;
   }
 }
 </style>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
 import type { WinEvent } from '../types/game'
 
 const props = defineProps<{

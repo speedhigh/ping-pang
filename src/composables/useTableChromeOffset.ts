@@ -1,5 +1,3 @@
-import { onUnmounted, ref, watch } from 'vue'
-
 /** 测量 Header 高度，用于上下半区视觉平衡补偿 */
 export function useTableChromeOffset(getHeaderEl: () => HTMLElement | null | undefined) {
   const chromeOffset = ref(0)

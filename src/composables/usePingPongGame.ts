@@ -1,5 +1,3 @@
-import { computed, ref, watch } from 'vue'
-import { useLocalStorage } from '@vueuse/core'
 import {
   DEFAULT_LAYOUT_DIRECTIONS,
   DEFAULT_PARTICIPANTS,
@@ -17,8 +15,10 @@ import { isGameWon, isMatchWon } from '../utils/scoring'
 import { cloneCompletedGames, cloneParticipants } from '../utils/clone'
 import {
   layoutDirectionsFromLegacyViewMode,
+  layoutDirectionsFromPreset,
   normalizeLayoutDirections,
   type LayoutDirection,
+  type LayoutDirectionPreset,
   type LayoutDirectionTarget,
 } from '../utils/layoutDirection'
 
@@ -37,6 +37,9 @@ function defaultState(): PersistedGameState {
     themeId: DEFAULT_THEME_ID,
     layoutDirections: { ...DEFAULT_LAYOUT_DIRECTIONS },
     completedGames: [],
+    sidesSwapped: false,
+    autoSwapSides: false,
+    scoreNudgeTop: 16,
   }
 }
 
@@ -49,6 +52,7 @@ type HistoryEntry = Pick<
   | 'currentGameIndex'
   | 'firstServer'
   | 'completedGames'
+  | 'sidesSwapped'
 >
 
 export function usePingPongGame() {
@@ -73,6 +77,9 @@ export function usePingPongGame() {
   )
   const participants = computed(() => state.value.participants ?? DEFAULT_PARTICIPANTS)
   const completedGames = computed(() => state.value.completedGames ?? [])
+  const sidesSwapped = computed(() => state.value.sidesSwapped ?? false)
+  const autoSwapSides = computed(() => state.value.autoSwapSides ?? false)
+  const scoreNudgeTop = computed(() => state.value.scoreNudgeTop ?? 16)
 
   const currentServer = computed(() =>
     getCurrentServer(state.value.scoreA, state.value.scoreB, state.value.firstServer),
@@ -109,6 +116,7 @@ export function usePingPongGame() {
       currentGameIndex: state.value.currentGameIndex,
       firstServer: state.value.firstServer,
       completedGames: cloneCompletedGames(state.value.completedGames),
+      sidesSwapped: state.value.sidesSwapped ?? false,
     })
     if (history.value.length > 50) {
       history.value.shift()
@@ -195,12 +203,16 @@ export function usePingPongGame() {
     winEvent.value = null
 
     if (event.type === 'game') {
-      patchState({
+      const patch: Partial<PersistedGameState> = {
         scoreA: 0,
         scoreB: 0,
         currentGameIndex: state.value.currentGameIndex + 1,
         firstServer: otherPlayer(state.value.firstServer),
-      })
+      }
+      if (state.value.autoSwapSides && state.value.matchFormat !== 'none') {
+        patch.sidesSwapped = !(state.value.sidesSwapped ?? false)
+      }
+      patchState(patch)
       history.value = []
       return
     }
@@ -220,8 +232,23 @@ export function usePingPongGame() {
       matchFormat: state.value.matchFormat,
       themeId: state.value.themeId,
       layoutDirections: normalizeLayoutDirections(state.value.layoutDirections),
+      autoSwapSides: state.value.autoSwapSides ?? false,
+      scoreNudgeTop: state.value.scoreNudgeTop ?? 16,
       firstServer: otherPlayer(state.value.firstServer),
     })
+  }
+
+  function toggleSides() {
+    if (isLocked.value) return
+    patchState({ sidesSwapped: !(state.value.sidesSwapped ?? false) })
+  }
+
+  function setAutoSwapSides(enabled: boolean) {
+    patchState({ autoSwapSides: enabled })
+  }
+
+  function setScoreNudgeTop(px: number) {
+    patchState({ scoreNudgeTop: Math.max(0, Math.min(48, Math.round(px))) })
   }
 
   function undo() {
@@ -237,6 +264,7 @@ export function usePingPongGame() {
       currentGameIndex: last.currentGameIndex,
       firstServer: last.firstServer,
       completedGames: cloneCompletedGames(last.completedGames),
+      sidesSwapped: last.sidesSwapped ?? false,
     })
   }
 
@@ -255,12 +283,18 @@ export function usePingPongGame() {
       matchFormat: state.value.matchFormat,
       themeId: state.value.themeId,
       layoutDirections: normalizeLayoutDirections(state.value.layoutDirections),
+      autoSwapSides: state.value.autoSwapSides ?? false,
+      scoreNudgeTop: state.value.scoreNudgeTop ?? 16,
       firstServer: state.value.firstServer,
     })
   }
 
   function setMatchFormat(format: MatchFormat) {
-    patchState({ matchFormat: format })
+    const patch: Partial<PersistedGameState> = { matchFormat: format }
+    if (format === 'none') {
+      patch.autoSwapSides = false
+    }
+    patchState(patch)
     resetMatch()
   }
 
@@ -286,6 +320,11 @@ export function usePingPongGame() {
         [target]: direction,
       },
     })
+  }
+
+  function setLayoutDirectionPreset(preset: LayoutDirectionPreset) {
+    if (preset === 'custom') return
+    patchState({ layoutDirections: layoutDirectionsFromPreset(preset) })
   }
 
   function setScores(nextA: number, nextB: number) {
@@ -359,6 +398,9 @@ export function usePingPongGame() {
     layoutDirections,
     participants,
     completedGames,
+    sidesSwapped,
+    autoSwapSides,
+    scoreNudgeTop,
     currentServer,
     gameWinner,
     matchWinner,
@@ -377,6 +419,10 @@ export function usePingPongGame() {
     setFirstServer,
     setThemeId,
     setLayoutDirection,
+    setLayoutDirectionPreset,
     setScores,
+    toggleSides,
+    setAutoSwapSides,
+    setScoreNudgeTop,
   }
 }

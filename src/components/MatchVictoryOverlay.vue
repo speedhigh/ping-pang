@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
 import { getTheme } from '../themes/config'
 import type { PlayerId, WinEvent } from '../types/game'
 import { hexToRgba } from '../utils/color'

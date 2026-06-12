@@ -126,12 +126,17 @@ export function getTheme(id: string): ThemeConfig {
   return THEMES.find((t) => t.id === id) ?? THEMES[0]!
 }
 
-export function applyThemeToDocument(theme: ThemeConfig) {
+export function applyThemeToDocument(
+  theme: ThemeConfig,
+  options?: { headerPlayer?: 'A' | 'B' },
+) {
   const root = document.documentElement
+  const headerPlayer = options?.headerPlayer ?? 'A'
+  const headerBg = headerPlayer === 'B' ? theme.playerB : theme.playerA
   root.dataset.theme = theme.id
   root.style.setProperty('--player-a-bg', theme.playerA)
   root.style.setProperty('--player-b-bg', theme.playerB)
-  root.style.setProperty('--header-bg', theme.playerA)
+  root.style.setProperty('--header-bg', headerBg)
   root.style.setProperty('--header-text', '#ffffff')
   root.style.setProperty('--hub-bg', theme.hubBg)
   root.style.setProperty('--hub-text', theme.hubText)
@@ -148,13 +153,14 @@ export function applyThemeToDocument(theme: ThemeConfig) {
     '--score-box-gradient',
     `linear-gradient(180deg, ${theme.playerA} 0%, ${theme.playerB} 100%)`,
   )
-  setMetaThemeColor(theme.statusBarColor)
+  setMetaThemeColor(headerBg)
 }
 
 export function applyOverlayStatusBar(theme: ThemeConfig) {
   setMetaThemeColor(theme.overlayStatusBarColor)
 }
 
-export function restoreStatusBar(theme: ThemeConfig) {
-  setMetaThemeColor(theme.statusBarColor)
+export function restoreStatusBar(theme: ThemeConfig, headerPlayer: 'A' | 'B' = 'A') {
+  const headerBg = headerPlayer === 'B' ? theme.playerB : theme.playerA
+  setMetaThemeColor(headerBg)
 }

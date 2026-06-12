@@ -1,19 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, watch, watchEffect } from 'vue'
-import { useWakeLock } from '@vueuse/core'
-import ConfirmDialog from './components/ConfirmDialog.vue'
-import MatchVictoryOverlay from './components/MatchVictoryOverlay.vue'
-import Scoreboard from './components/Scoreboard.vue'
-import ScoreboardHeader from './components/ScoreboardHeader.vue'
-import SettingsPanel from './components/SettingsPanel.vue'
-import WinOverlay from './components/WinOverlay.vue'
 import { usePingPongGame } from './composables/usePingPongGame'
 import { useTheme } from './composables/useTheme'
 import { useTableChromeOffset } from './composables/useTableChromeOffset'
 import { playVictorySound, unlockVictorySound } from './composables/useVictorySound'
 import type { MatchFormat, PlayerId } from './types/game'
 import { applyOverlayStatusBar, getTheme, restoreStatusBar } from './themes/config'
-import type { LayoutDirection, LayoutDirectionTarget } from './utils/layoutDirection'
+import type { LayoutDirection, LayoutDirectionPreset, LayoutDirectionTarget } from './utils/layoutDirection'
 import { matchFormatLabel } from './utils/scoring'
 
 const game = usePingPongGame()
@@ -41,19 +33,28 @@ const {
   setParticipantName,
   setFirstServer,
   setLayoutDirection,
+  setLayoutDirectionPreset,
   participantName,
+  sidesSwapped,
+  autoSwapSides,
+  scoreNudgeTop,
+  toggleSides,
+  setAutoSwapSides,
+  setScoreNudgeTop,
 } = game
 
 const { themes, themeId, setThemeId } = useTheme({
   themeId: game.themeId,
   setThemeId: game.setThemeId,
+  sidesSwapped,
 })
 
 useWakeLock()
 
 const settingsOpen = ref(false)
+const appearanceOpen = ref(false)
 const resetGameConfirmOpen = ref(false)
-const headerRef = ref<InstanceType<typeof ScoreboardHeader> | null>(null)
+const headerRef = ref<{ rootRef: HTMLElement | null } | null>(null)
 
 const { chromeOffset } = useTableChromeOffset(() => headerRef.value?.rootRef ?? null)
 
@@ -82,6 +83,7 @@ const overlayOpen = computed(
     showMatchVictory.value
     || showSimpleWin.value
     || settingsOpen.value
+    || appearanceOpen.value
     || resetGameConfirmOpen.value,
 )
 
@@ -91,10 +93,11 @@ const victoryOverlayOpen = computed(
 
 watchEffect(() => {
   const theme = getTheme(themeId.value)
+  const headerPlayer = sidesSwapped.value ? 'B' : 'A'
   if (overlayOpen.value) {
     applyOverlayStatusBar(theme)
   } else {
-    restoreStatusBar(theme)
+    restoreStatusBar(theme, headerPlayer)
   }
 
   if (victoryOverlayOpen.value) {
@@ -145,6 +148,10 @@ function onLayoutDirection(target: LayoutDirectionTarget, direction: LayoutDirec
   setLayoutDirection(target, direction)
 }
 
+function onLayoutDirectionPreset(preset: LayoutDirectionPreset) {
+  setLayoutDirectionPreset(preset)
+}
+
 function requestResetGame() {
   resetGameConfirmOpen.value = true
 }
@@ -157,7 +164,14 @@ function confirmResetGame() {
 
 <template>
   <div class="app-shell relative z-[1] flex h-[100dvh] min-h-[100dvh] flex-col overflow-hidden">
-    <ScoreboardHeader ref="headerRef" :title="headerTitle" @settings="settingsOpen = true" />
+    <ScoreboardHeader
+      ref="headerRef"
+      :title="headerTitle"
+      :swap-disabled="isLocked"
+      @swap-sides="toggleSides"
+      @appearance="appearanceOpen = true"
+      @settings="settingsOpen = true"
+    />
 
     <div class="min-h-0 flex-1">
       <Scoreboard
@@ -173,6 +187,8 @@ function confirmResetGame() {
         :current-game-index="currentGameIndex"
         :game-wins-a="gameWinsA"
         :game-wins-b="gameWinsB"
+        :sides-swapped="sidesSwapped"
+        :score-nudge-top="scoreNudgeTop"
         :is-locked="isLocked"
         @score="onScore"
         @undo="undo"
@@ -208,20 +224,30 @@ function confirmResetGame() {
       @dismiss="dismissWin"
     />
 
+    <AppearancePanel
+      :open="appearanceOpen"
+      :layout-directions="layoutDirections"
+      :theme-id="themeId"
+      :themes="themes"
+      :score-nudge-top="scoreNudgeTop"
+      @close="appearanceOpen = false"
+      @update:score-nudge-top="setScoreNudgeTop"
+      @update:layout-direction="onLayoutDirection"
+      @update:layout-direction-preset="onLayoutDirectionPreset"
+      @update:theme-id="setThemeId"
+    />
+
     <SettingsPanel
       :open="settingsOpen"
       :participants="participants"
       :match-format="matchFormat"
       :first-server="firstServer"
-      :layout-directions="layoutDirections"
-      :theme-id="themeId"
-      :themes="themes"
+      :auto-swap-sides="autoSwapSides"
       @close="settingsOpen = false"
+      @update:auto-swap-sides="setAutoSwapSides"
       @update:match-format="onMatchFormat"
       @update:participant="setParticipantName"
       @update:first-server="onFirstServer"
-      @update:layout-direction="onLayoutDirection"
-      @update:theme-id="setThemeId"
       @reset-match="resetMatch"
     />
   </div>
