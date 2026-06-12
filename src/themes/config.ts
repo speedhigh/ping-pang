@@ -1,8 +1,14 @@
+import { setMetaThemeColor } from '../utils/themeColor'
+
 export interface ThemeConfig {
   id: string
   name: string
   playerA: string
   playerB: string
+  /** 状态栏 / 浏览器顶栏色（与 Header 一致） */
+  statusBarColor: string
+  /** 弹窗打开时的状态栏色 */
+  overlayStatusBarColor: string
   hubBg: string
   hubText: string
   hubMuted: string
@@ -19,6 +25,8 @@ export const THEMES: ThemeConfig[] = [
     name: 'Arena Duo',
     playerA: '#E84855',
     playerB: '#3B82C4',
+    statusBarColor: '#E84855',
+    overlayStatusBarColor: '#1C1C1E',
     hubBg: '#FFFFFF',
     hubText: '#1C1C1E',
     hubMuted: '#8E8E93',
@@ -33,6 +41,8 @@ export const THEMES: ThemeConfig[] = [
     name: 'Classic Arena',
     playerA: '#2D8B57',
     playerB: '#2A6B7C',
+    statusBarColor: '#2D8B57',
+    overlayStatusBarColor: '#142420',
     hubBg: '#F5F7F6',
     hubText: '#1A2E28',
     hubMuted: '#6B7F78',
@@ -47,6 +57,8 @@ export const THEMES: ThemeConfig[] = [
     name: 'Terracotta',
     playerA: '#C4684A',
     playerB: '#5A7282',
+    statusBarColor: '#C4684A',
+    overlayStatusBarColor: '#2A2420',
     hubBg: '#FAF8F6',
     hubText: '#2C2420',
     hubMuted: '#8A7F78',
@@ -61,6 +73,8 @@ export const THEMES: ThemeConfig[] = [
     name: 'Plum Steel',
     playerA: '#7B5E8A',
     playerB: '#4A6572',
+    statusBarColor: '#7B5E8A',
+    overlayStatusBarColor: '#221E28',
     hubBg: '#F7F6F8',
     hubText: '#2A2430',
     hubMuted: '#857A8F',
@@ -101,4 +115,13 @@ export function applyThemeToDocument(theme: ThemeConfig) {
     '--score-box-gradient',
     `linear-gradient(180deg, ${theme.playerA} 0%, ${theme.playerB} 100%)`,
   )
+  setMetaThemeColor(theme.statusBarColor)
+}
+
+export function applyOverlayStatusBar(theme: ThemeConfig) {
+  setMetaThemeColor(theme.overlayStatusBarColor)
+}
+
+export function restoreStatusBar(theme: ThemeConfig) {
+  setMetaThemeColor(theme.statusBarColor)
 }

@@ -16,11 +16,9 @@ const isGameWin = computed(() => props.event.type === 'game')
 </script>
 
 <template>
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--overlay-bg)] backdrop-blur-md"
-  >
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--panel-bg)] px-4">
     <div
-      class="mx-6 w-full max-w-sm rounded-3xl bg-[var(--hub-bg)] px-8 py-10 text-center shadow-[var(--hub-shadow)]"
+      class="w-full max-w-sm rounded-3xl bg-[var(--hub-bg)] px-8 py-10 text-center shadow-[var(--hub-shadow)]"
     >
       <div class="mb-4 text-5xl">
         {{ isGameWin ? '🎯' : '🏆' }}

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch, watchEffect } from 'vue'
 import { useWakeLock } from '@vueuse/core'
 import MatchVictoryOverlay from './components/MatchVictoryOverlay.vue'
 import Scoreboard from './components/Scoreboard.vue'
@@ -8,7 +8,9 @@ import SettingsPanel from './components/SettingsPanel.vue'
 import WinOverlay from './components/WinOverlay.vue'
 import { usePingPongGame } from './composables/usePingPongGame'
 import { useTheme } from './composables/useTheme'
+import { playVictorySound, unlockVictorySound } from './composables/useVictorySound'
 import type { MatchFormat, PlayerId } from './types/game'
+import { applyOverlayStatusBar, getTheme, restoreStatusBar } from './themes/config'
 import type { LayoutDirection, LayoutDirectionTarget } from './utils/layoutDirection'
 import { matchFormatLabel } from './utils/scoring'
 
@@ -69,6 +71,44 @@ const showSimpleWin = computed(() => {
   return true
 })
 
+const overlayOpen = computed(
+  () => showMatchVictory.value || showSimpleWin.value || settingsOpen.value,
+)
+
+watchEffect(() => {
+  const theme = getTheme(themeId.value)
+  if (overlayOpen.value) {
+    applyOverlayStatusBar(theme)
+  } else {
+    restoreStatusBar(theme)
+  }
+})
+
+watch(winEvent, (event, prev) => {
+  if (!event || event === prev) return
+
+  if (
+    event.type === 'match'
+    && matchFormat.value !== 'none'
+    && event.completedGames.length > 0
+  ) {
+    playVictorySound('match')
+    return
+  }
+
+  if (event.type === 'game') {
+    playVictorySound('game')
+    return
+  }
+
+  playVictorySound('single')
+})
+
+function onScore(playerId: PlayerId) {
+  unlockVictorySound()
+  score(playerId)
+}
+
 function onMatchFormat(format: MatchFormat) {
   setMatchFormat(format)
 }
@@ -100,7 +140,7 @@ function onLayoutDirection(target: LayoutDirectionTarget, direction: LayoutDirec
         :game-wins-a="gameWinsA"
         :game-wins-b="gameWinsB"
         :is-locked="isLocked"
-        @score="score"
+        @score="onScore"
         @undo="undo"
         @reset-game="resetGame"
       />

@@ -16,8 +16,8 @@ export default defineConfig({
         short_name: '乒乓球计分器',
         description: '球桌旁快速记分的乒乓球计分器',
         lang: 'zh-CN',
-        theme_color: '#1a2e28',
-        background_color: '#1a2e28',
+        theme_color: '#E84855',
+        background_color: '#E84855',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
