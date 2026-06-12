@@ -94,3 +94,20 @@ button {
 .dir-rotate-down {
   transform: rotate(180deg);
 }
+
+/* 全屏弹层：Teleported 到 body，遮罩延伸进底部安全区 */
+.overlay-fullscreen {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+}
