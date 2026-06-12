@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CenterHub from './CenterHub.vue'
 import PlayerHalf from './PlayerHalf.vue'
-import type { PlayerId } from '../types/game'
+import type { MatchFormat, PlayerId } from '../types/game'
 import type { LayoutDirections } from '../utils/layoutDirection'
 
 defineProps<{
@@ -13,7 +13,7 @@ defineProps<{
   scoreB: number
   isServingA: boolean
   isServingB: boolean
-  matchFormat: import('../types/game').MatchFormat
+  matchFormat: MatchFormat
   currentGameIndex: number
   gameWinsA: number
   gameWinsB: number

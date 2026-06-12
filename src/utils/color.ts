@@ -1,4 +1,4 @@
-/** #RRGGBB → rgba，供 html2canvas 截图使用 */
+/** #RRGGBB → rgba */
 export function hexToRgba(hex: string, alpha: number): string {
   const normalized = hex.replace('#', '')
   const r = Number.parseInt(normalized.slice(0, 2), 16)

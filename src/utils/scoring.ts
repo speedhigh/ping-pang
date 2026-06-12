@@ -1,7 +1,32 @@
-import type { MatchFormat, PlayerId } from '../types/game'
+import type { CompletedGame, MatchFormat, PlayerId } from '../types/game'
 
 export const WINNING_SCORE = 11
 export const MIN_LEAD = 2
+export const GAME_POINT_SCORE = 10
+
+export interface MatchSummary {
+  totalScoreA: number
+  totalScoreB: number
+  gameCount: number
+  netScoreA: number
+}
+
+/** 当前比分是否处于局点（≥10 分） */
+export function isAtGamePoint(score: number): boolean {
+  return score >= GAME_POINT_SCORE
+}
+
+export function summarizeCompletedGames(games: CompletedGame[]): MatchSummary {
+  const totalScoreA = games.reduce((sum, game) => sum + game.scoreA, 0)
+  const totalScoreB = games.reduce((sum, game) => sum + game.scoreB, 0)
+
+  return {
+    totalScoreA,
+    totalScoreB,
+    gameCount: games.length,
+    netScoreA: totalScoreA - totalScoreB,
+  }
+}
 
 export function isGameWon(scoreA: number, scoreB: number): PlayerId | null {
   const leader = scoreA > scoreB ? 'A' : scoreB > scoreA ? 'B' : null

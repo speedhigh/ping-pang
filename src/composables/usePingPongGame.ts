@@ -42,7 +42,13 @@ function defaultState(): PersistedGameState {
 
 type HistoryEntry = Pick<
   PersistedGameState,
-  'scoreA' | 'scoreB' | 'gameWinsA' | 'gameWinsB' | 'currentGameIndex' | 'firstServer' | 'completedGames'
+  | 'scoreA'
+  | 'scoreB'
+  | 'gameWinsA'
+  | 'gameWinsB'
+  | 'currentGameIndex'
+  | 'firstServer'
+  | 'completedGames'
 >
 
 export function usePingPongGame() {

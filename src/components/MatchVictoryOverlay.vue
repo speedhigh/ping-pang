@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import html2canvas from 'html2canvas'
+import { computed, onMounted, onUnmounted } from 'vue'
 import { getTheme } from '../themes/config'
 import type { PlayerId, WinEvent } from '../types/game'
 import { hexToRgba } from '../utils/color'
-import { matchFormatLabel } from '../utils/scoring'
+import { matchFormatLabel, summarizeCompletedGames } from '../utils/scoring'
 
 const props = defineProps<{
   event: WinEvent
@@ -19,12 +18,16 @@ const emit = defineEmits<{
   newMatch: []
 }>()
 
-const cardRef = ref<HTMLElement | null>(null)
-const saving = ref(false)
-const previewUrl = ref<string | null>(null)
-
 const theme = computed(() => getTheme(props.themeId))
 const winnerBg = computed(() => winnerColor(props.event.winnerId))
+const summary = computed(() => summarizeCompletedGames(props.event.completedGames))
+
+const netScoreLabel = computed(() => {
+  const diff = summary.value.netScoreA
+  if (diff > 0) return `${props.nameA} 净胜 ${diff} 分`
+  if (diff < 0) return `${props.nameB} 净胜 ${Math.abs(diff)} 分`
+  return '总得分持平'
+})
 
 function winnerLabel(id: PlayerId): string {
   return id === 'A' ? props.nameA : props.nameB
@@ -32,47 +35,6 @@ function winnerLabel(id: PlayerId): string {
 
 function winnerColor(id: PlayerId): string {
   return id === 'A' ? theme.value.playerA : theme.value.playerB
-}
-
-function gameRowStyle(winnerId: PlayerId) {
-  return {
-    background: hexToRgba(winnerColor(winnerId), 0.14),
-    borderRadius: '12px',
-    padding: '12px 16px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: '8px',
-  }
-}
-
-async function saveScreenshot() {
-  if (!cardRef.value || saving.value) return
-  saving.value = true
-  try {
-    const canvas = await html2canvas(cardRef.value, {
-      backgroundColor: theme.value.hubBg,
-      scale: Math.min(window.devicePixelRatio || 2, 3),
-      useCORS: true,
-      logging: false,
-    })
-    previewUrl.value = canvas.toDataURL('image/png')
-
-    if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      const link = document.createElement('a')
-      link.download = `乒乓球计分器-${Date.now()}.png`
-      link.href = previewUrl.value
-      link.click()
-    }
-  } catch {
-    window.alert('生成截图失败，请重试')
-  } finally {
-    saving.value = false
-  }
-}
-
-function closePreview() {
-  previewUrl.value = null
 }
 
 onMounted(() => {
@@ -87,77 +49,56 @@ onUnmounted(() => {
 <template>
   <div class="fixed inset-0 z-50 flex items-end justify-center bg-[var(--panel-bg)] sm:items-center">
     <div class="flex max-h-[92dvh] w-full max-w-md flex-col px-4 pb-6 pt-4 sm:pb-4">
-      <!-- 截图区域：全部 inline 样式，避免 html2canvas 丢失 CSS 变量 -->
-      <div
-        ref="cardRef"
-        :style="{
-          overflow: 'hidden',
-          borderRadius: '24px',
-          boxShadow: '0 16px 48px rgba(0,0,0,0.28)',
-          fontFamily: 'system-ui, -apple-system, sans-serif',
-          width: '100%',
-        }"
-      >
-        <div
-          :style="{
-            background: winnerBg,
-            padding: '20px 24px',
-            textAlign: 'center',
-            color: '#ffffff',
-          }"
-        >
-          <div :style="{ fontSize: '36px', marginBottom: '8px' }">🏆</div>
-          <h2 :style="{ fontSize: '20px', fontWeight: 700, margin: 0, lineHeight: 1.35 }">
+      <div class="overflow-hidden rounded-3xl shadow-[0_16px_48px_rgba(0,0,0,0.28)]">
+        <div class="px-6 py-5 text-center text-white" :style="{ background: winnerBg }">
+          <div class="mb-2 text-4xl">🏆</div>
+          <h2 class="text-xl font-bold leading-snug">
             {{ winnerName }} 取得了最终的胜利
           </h2>
-          <p :style="{ margin: '6px 0 0', fontSize: '14px', color: 'rgba(255,255,255,0.78)' }">
-            {{ matchFormatLabel(matchFormat) }} · {{ event.gameWinsA }} : {{ event.gameWinsB }}
+          <p class="mt-1.5 text-sm text-white/80">
+            {{ matchFormatLabel(matchFormat) }} · 大局 {{ event.gameWinsA }} : {{ event.gameWinsB }}
           </p>
         </div>
 
-        <div
-          :style="{
-            background: theme.hubBg,
-            padding: '16px 20px 18px',
-            color: theme.hubText,
-          }"
-        >
-          <p
-            :style="{
-              margin: '0 0 12px',
-              textAlign: 'center',
-              fontSize: '11px',
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: theme.hubMuted,
-            }"
+        <div class="bg-[var(--hub-bg)] px-5 py-4 text-[var(--hub-text)]">
+          <div
+            class="mb-4 rounded-2xl border border-black/5 bg-black/[0.03] px-4 py-3 text-center"
           >
+            <p class="text-[11px] font-semibold tracking-widest text-[var(--hub-muted)]">
+              总得分
+            </p>
+            <p class="mt-1 text-2xl font-bold tabular-nums">
+              {{ summary.totalScoreA }} : {{ summary.totalScoreB }}
+            </p>
+            <p class="mt-1 text-xs text-[var(--hub-muted)]">
+              共 {{ summary.gameCount }} 局 · {{ netScoreLabel }}
+            </p>
+          </div>
+
+          <p class="mb-3 text-center text-[11px] font-semibold tracking-widest text-[var(--hub-muted)]">
             各局比分
           </p>
 
-          <div>
+          <div class="space-y-2">
             <div
               v-for="game in event.completedGames"
               :key="game.gameIndex"
-              :style="gameRowStyle(game.winnerId)"
+              class="flex items-center justify-between gap-2 rounded-xl px-4 py-3"
+              :style="{
+                background: hexToRgba(winnerColor(game.winnerId), 0.14),
+              }"
             >
-              <span :style="{ fontSize: '14px', fontWeight: 500, color: theme.hubMuted }">
+              <span class="text-sm font-medium text-[var(--hub-muted)]">
                 第 {{ game.gameIndex }} 局
               </span>
-              <span :style="{ fontSize: '18px', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }">
+
+              <span class="shrink-0 text-lg font-bold tabular-nums">
                 {{ game.scoreA }} : {{ game.scoreB }}
               </span>
+
               <span
-                :style="{
-                  maxWidth: '5rem',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: winnerColor(game.winnerId),
-                }"
+                class="max-w-[5rem] truncate text-sm font-semibold"
+                :style="{ color: winnerColor(game.winnerId) }"
               >
                 {{ winnerLabel(game.winnerId) }}
               </span>
@@ -165,15 +106,7 @@ onUnmounted(() => {
           </div>
 
           <div
-            :style="{
-              marginTop: '14px',
-              paddingTop: '12px',
-              borderTop: '1px solid rgba(0,0,0,0.08)',
-              display: 'flex',
-              justifyContent: 'space-between',
-              fontSize: '12px',
-              color: theme.hubMuted,
-            }"
+            class="mt-4 flex justify-between border-t border-black/8 pt-3 text-xs text-[var(--hub-muted)]"
           >
             <span>{{ nameA }}</span>
             <span>vs</span>
@@ -182,63 +115,14 @@ onUnmounted(() => {
         </div>
       </div>
 
-      <div class="mt-4 space-y-2">
-        <button
-          type="button"
-          class="w-full rounded-full border border-white/20 bg-white/10 py-3 text-sm font-medium text-[var(--panel-text)] transition active:bg-white/20 disabled:opacity-50"
-          :disabled="saving"
-          @click="saveScreenshot"
-        >
-          {{ saving ? '生成中…' : '保存战绩截图' }}
-        </button>
-        <button
-          type="button"
-          class="w-full rounded-full py-3 text-sm font-semibold text-white transition active:brightness-90"
-          :style="{ background: winnerBg }"
-          @click="emit('newMatch')"
-        >
-          新的一局
-        </button>
-      </div>
+      <button
+        type="button"
+        class="mt-4 w-full rounded-full py-3 text-sm font-semibold text-white transition active:brightness-90"
+        :style="{ background: winnerBg }"
+        @click="emit('newMatch')"
+      >
+        新的一局
+      </button>
     </div>
   </div>
-
-  <Teleport to="body">
-    <div
-      v-if="previewUrl"
-      class="preview-layer fixed inset-0 z-[60] flex flex-col bg-black"
-    >
-      <div class="flex shrink-0 items-center justify-between px-4 pb-2 pt-[max(0.75rem,env(safe-area-inset-top))]">
-        <p class="text-sm text-white/80">
-          长按图片保存到相册
-        </p>
-        <button
-          type="button"
-          class="rounded-full bg-white/15 px-4 py-2 text-sm font-medium text-white"
-          @click="closePreview"
-        >
-          关闭
-        </button>
-      </div>
-
-      <div class="flex min-h-0 flex-1 items-center justify-center px-4 pb-4">
-        <img
-          :src="previewUrl"
-          alt="战绩截图"
-          class="max-h-full max-w-full rounded-2xl object-contain"
-        />
-      </div>
-
-      <p class="shrink-0 pb-[max(1rem,env(safe-area-inset-bottom))] text-center text-xs text-white/50">
-        乒乓球计分器
-      </p>
-    </div>
-  </Teleport>
 </template>
-
-<style scoped>
-.preview-layer img {
-  -webkit-touch-callout: default;
-  user-select: auto;
-}
-</style>
