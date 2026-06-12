@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { rosterIdForPlayer } from '../utils/roster'
 import type { MatchFormat, Participant, PlayerId } from '../types/game'
+import type { RosterHero } from '../types/roster'
 
 const props = defineProps<{
   open: boolean
   participants: Participant[]
+  roster: RosterHero[]
   matchFormat: MatchFormat
   firstServer: PlayerId
   autoSwapSides: boolean
@@ -12,35 +15,35 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: []
   'update:matchFormat': [format: MatchFormat]
-  'update:participant': [id: PlayerId, name: string]
   'update:firstServer': [id: PlayerId]
   'update:autoSwapSides': [enabled: boolean]
+  'update:playerSlots': [slotA: string, slotB: string]
+  addRosterHero: [name: string, emoji: string]
+  updateRosterHero: [id: string, patch: { name?: string; emoji?: string }]
+  deleteRosterHero: [id: string]
   resetMatch: []
 }>()
 
-const localNames = ref({ A: '', B: '' })
 const resetMatchConfirmOpen = ref(false)
+const pickerOpen = ref(false)
+const manageOpen = ref(false)
+
+const slotA = computed(() => rosterIdForPlayer(props.participants, 'A'))
+const slotB = computed(() => rosterIdForPlayer(props.participants, 'B'))
+
+const heroA = computed(() => props.roster.find((h) => h.id === slotA.value))
+const heroB = computed(() => props.roster.find((h) => h.id === slotB.value))
 
 watch(
   () => props.open,
   (open) => {
     if (!open) {
       resetMatchConfirmOpen.value = false
-    }
-    if (open) {
-      localNames.value = {
-        A: props.participants.find((p) => p.id === 'A')?.name ?? '选手A',
-        B: props.participants.find((p) => p.id === 'B')?.name ?? '选手B',
-      }
+      pickerOpen.value = false
+      manageOpen.value = false
     }
   },
 )
-
-function saveNames() {
-  emit('update:participant', 'A', localNames.value.A)
-  emit('update:participant', 'B', localNames.value.B)
-  emit('close')
-}
 
 function confirmResetMatch() {
   resetMatchConfirmOpen.value = false
@@ -74,24 +77,45 @@ const formatOptions: { value: MatchFormat; label: string }[] = [
 
         <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
           <div class="space-y-5">
-            <label class="block">
-              <span class="mb-1.5 block text-xs text-[var(--panel-muted)]">选手 A</span>
-              <input
-                v-model="localNames.A"
-                type="text"
-                maxlength="12"
-                class="w-full rounded-xl border border-[var(--panel-border)] bg-white/8 px-3 py-2.5 text-[var(--panel-text)] outline-none focus:border-white/30"
-              />
-            </label>
-            <label class="block">
-              <span class="mb-1.5 block text-xs text-[var(--panel-muted)]">选手 B</span>
-              <input
-                v-model="localNames.B"
-                type="text"
-                maxlength="12"
-                class="w-full rounded-xl border border-[var(--panel-border)] bg-white/8 px-3 py-2.5 text-[var(--panel-text)] outline-none focus:border-white/30"
-              />
-            </label>
+            <fieldset>
+              <div class="mb-3 flex items-center justify-between gap-2">
+                <legend class="text-xs font-medium text-[var(--panel-muted)]">
+                  玩家选择 ({{ roster.length }})
+                </legend>
+                <button
+                  type="button"
+                  class="shrink-0 text-xs font-medium text-white/80 transition active:opacity-70"
+                  @click.stop="manageOpen = true"
+                >
+                  管理 ›
+                </button>
+              </div>
+
+              <button
+                type="button"
+                class="w-full rounded-xl border border-[var(--panel-border)] bg-white/5 p-4 text-left transition active:bg-white/10"
+                @click="pickerOpen = true"
+              >
+                <div class="flex items-center justify-center gap-6">
+                  <RosterAvatar
+                    v-if="heroA"
+                    :emoji="heroA.emoji"
+                    :name="heroA.name"
+                    slot="1P"
+                    size="md"
+                  />
+                  <span class="text-sm font-medium text-[var(--panel-muted)]">VS</span>
+                  <RosterAvatar
+                    v-if="heroB"
+                    :emoji="heroB.emoji"
+                    :name="heroB.name"
+                    slot="2P"
+                    size="md"
+                  />
+                </div>
+                <p class="mt-3 text-center text-xs text-[var(--panel-muted)]">点击进入选角 ›</p>
+              </button>
+            </fieldset>
 
             <fieldset>
               <legend class="mb-2 text-xs text-[var(--panel-muted)]">大局赛制</legend>
@@ -155,31 +179,31 @@ const formatOptions: { value: MatchFormat; label: string }[] = [
               <legend class="mb-2 text-xs text-[var(--panel-muted)]">首局发球方</legend>
               <div class="grid grid-cols-2 gap-2">
                 <button
-                  v-for="id in (['A', 'B'] as PlayerId[])"
-                  :key="id"
+                  v-for="slot in ([{ id: 'A' as PlayerId, label: '1P' }, { id: 'B' as PlayerId, label: '2P' }] )"
+                  :key="slot.id"
                   type="button"
                   class="flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm transition active:scale-[0.99]"
                   :class="
-                    firstServer === id
-                      ? id === 'A'
+                    firstServer === slot.id
+                      ? slot.id === 'A'
                         ? 'border-[var(--player-a-bg)] bg-[var(--player-a-bg)] font-semibold text-white shadow-sm'
                         : 'border-[var(--player-b-bg)] bg-[var(--player-b-bg)] font-semibold text-white shadow-sm'
                       : 'border-[var(--panel-border)] bg-white/5 font-medium text-[var(--panel-muted)]'
                   "
-                  @click="emit('update:firstServer', id)"
+                  @click="emit('update:firstServer', slot.id)"
                 >
                   <span
                     class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
                     :class="
-                      firstServer === id
+                      firstServer === slot.id
                         ? 'border-white bg-white'
                         : 'border-[var(--panel-muted)] bg-transparent'
                     "
-                    :style="firstServer === id ? { color: id === 'A' ? 'var(--player-a-bg)' : 'var(--player-b-bg)' } : undefined"
+                    :style="firstServer === slot.id ? { color: slot.id === 'A' ? 'var(--player-a-bg)' : 'var(--player-b-bg)' } : undefined"
                   >
-                    <CheckIcon v-if="firstServer === id" class="h-3 w-3" aria-hidden="true" />
+                    <CheckIcon v-if="firstServer === slot.id" class="h-3 w-3" aria-hidden="true" />
                   </span>
-                  选手 {{ id }}
+                  {{ slot.label }}
                 </button>
               </div>
             </fieldset>
@@ -200,7 +224,7 @@ const formatOptions: { value: MatchFormat; label: string }[] = [
             <button
               type="button"
               class="flex-1 rounded-full bg-white py-2.5 text-sm font-semibold text-[#1c1c1e]"
-              @click="saveNames"
+              @click="emit('close')"
             >
               完成
             </button>
@@ -208,6 +232,26 @@ const formatOptions: { value: MatchFormat; label: string }[] = [
         </footer>
       </div>
     </div>
+
+    <PlayerPickerPanel
+      :open="pickerOpen"
+      :roster="roster"
+      :slot-a="slotA"
+      :slot-b="slotB"
+      @close="pickerOpen = false"
+      @confirm="(a, b) => emit('update:playerSlots', a, b)"
+    />
+
+    <RosterManagePanel
+      :open="manageOpen"
+      :roster="roster"
+      :slot-a="slotA"
+      :slot-b="slotB"
+      @close="manageOpen = false"
+      @add="(name, emoji) => emit('addRosterHero', name, emoji)"
+      @update="(id, patch) => emit('updateRosterHero', id, patch)"
+      @delete="(id) => emit('deleteRosterHero', id)"
+    />
 
     <ConfirmDialog
       :open="resetMatchConfirmOpen"

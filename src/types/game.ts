@@ -1,11 +1,14 @@
-import type { LayoutDirections } from '../utils/layoutDirection'
-import { DEFAULT_LAYOUT_DIRECTIONS } from '../utils/layoutDirection'
+import type { RosterHero } from './roster'
+import { DEFAULT_ROSTER } from './roster'
+import { DEFAULT_LAYOUT_DIRECTIONS, type LayoutDirections } from '../utils/layoutDirection'
 
 export type PlayerId = 'A' | 'B'
 
 export interface Participant {
   id: PlayerId
   name: string
+  emoji: string
+  rosterId: string
 }
 
 export type MatchFormat = 'none' | 'bestOf3' | 'bestOf5'
@@ -38,6 +41,7 @@ export interface PersistedGameState {
   currentGameIndex: number
   matchFormat: MatchFormat
   participants: Participant[]
+  roster: RosterHero[]
   firstServer: PlayerId
   themeId: string
   layoutDirections: LayoutDirections
@@ -53,9 +57,11 @@ export interface PersistedGameState {
 }
 
 export const DEFAULT_PARTICIPANTS: Participant[] = [
-  { id: 'A', name: '选手A' },
-  { id: 'B', name: '选手B' },
+  { id: 'A', name: '选手A', emoji: '👤', rosterId: 'builtin-a' },
+  { id: 'B', name: '选手B', emoji: '👤', rosterId: 'builtin-b' },
 ]
+
+export { DEFAULT_ROSTER }
 
 export const DEFAULT_THEME_ID = 'arena-duo'
 export { DEFAULT_LAYOUT_DIRECTIONS }

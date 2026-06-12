@@ -2,7 +2,12 @@ import type { CompletedGame, Participant } from '../types/game'
 
 /** 避免 structuredClone 无法克隆 Vue 响应式代理 */
 export function cloneParticipants(list: Participant[]): Participant[] {
-  return list.map((p) => ({ id: p.id, name: p.name }))
+  return list.map((p) => ({
+    id: p.id,
+    name: p.name,
+    emoji: p.emoji,
+    rosterId: p.rosterId,
+  }))
 }
 
 export function cloneCompletedGames(games: CompletedGame[] | undefined): CompletedGame[] {

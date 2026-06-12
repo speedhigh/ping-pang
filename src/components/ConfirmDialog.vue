@@ -4,7 +4,7 @@ defineProps<{
   title: string
   message: string
   confirmLabel?: string
-  cancelLabel?: string
+  cancelLabel?: string | false
 }>()
 
 const emit = defineEmits<{
@@ -36,6 +36,7 @@ const emit = defineEmits<{
 
         <div class="mt-6 flex gap-3">
           <button
+            v-if="cancelLabel !== false"
             type="button"
             class="flex-1 rounded-full border border-[var(--panel-border)] py-2.5 text-sm font-medium text-[var(--hub-muted)] transition active:bg-black/5"
             @click="emit('cancel')"

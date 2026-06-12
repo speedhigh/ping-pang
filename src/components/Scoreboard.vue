@@ -7,6 +7,8 @@ const props = defineProps<{
   chromeOffset: number
   nameA: string
   nameB: string
+  emojiA: string
+  emojiB: string
   scoreA: number
   scoreB: number
   isServingA: boolean
@@ -37,6 +39,10 @@ function playerName(id: PlayerId): string {
   return id === 'A' ? props.nameA : props.nameB
 }
 
+function playerEmoji(id: PlayerId): string {
+  return id === 'A' ? props.emojiA : props.emojiB
+}
+
 function playerScore(id: PlayerId): number {
   return id === 'A' ? props.scoreA : props.scoreB
 }
@@ -62,6 +68,7 @@ function scoreDirection(id: PlayerId) {
         :nudge-px="topNudgePx"
         :text-direction="scoreDirection(topPlayerId)"
         :name="playerName(topPlayerId)"
+        :emoji="playerEmoji(topPlayerId)"
         :score="playerScore(topPlayerId)"
         :is-serving="playerServing(topPlayerId)"
         @score="emit('score', $event)"
@@ -71,6 +78,7 @@ function scoreDirection(id: PlayerId) {
         half="bottom"
         :text-direction="scoreDirection(bottomPlayerId)"
         :name="playerName(bottomPlayerId)"
+        :emoji="playerEmoji(bottomPlayerId)"
         :score="playerScore(bottomPlayerId)"
         :is-serving="playerServing(bottomPlayerId)"
         @score="emit('score', $event)"

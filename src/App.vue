@@ -21,6 +21,7 @@ const {
   isLocked,
   winEvent,
   participants,
+  roster,
   firstServer,
   layoutDirections,
   score,
@@ -30,11 +31,15 @@ const {
   resetGame,
   resetMatch,
   setMatchFormat,
-  setParticipantName,
+  setPlayerSlots,
+  addRosterHero,
+  updateRosterHero,
+  deleteRosterHero,
   setFirstServer,
   setLayoutDirection,
   setLayoutDirectionPreset,
   participantName,
+  participantEmoji,
   sidesSwapped,
   autoSwapSides,
   scoreNudgeTop,
@@ -179,6 +184,8 @@ function confirmResetGame() {
         :layout-directions="layoutDirections"
         :name-a="participantName('A')"
         :name-b="participantName('B')"
+        :emoji-a="participantEmoji('A')"
+        :emoji-b="participantEmoji('B')"
         :score-a="scoreA"
         :score-b="scoreB"
         :is-serving-a="currentServer === 'A'"
@@ -240,13 +247,17 @@ function confirmResetGame() {
     <SettingsPanel
       :open="settingsOpen"
       :participants="participants"
+      :roster="roster"
       :match-format="matchFormat"
       :first-server="firstServer"
       :auto-swap-sides="autoSwapSides"
       @close="settingsOpen = false"
       @update:auto-swap-sides="setAutoSwapSides"
       @update:match-format="onMatchFormat"
-      @update:participant="setParticipantName"
+      @update:player-slots="setPlayerSlots"
+      @add-roster-hero="addRosterHero"
+      @update-roster-hero="updateRosterHero"
+      @delete-roster-hero="deleteRosterHero"
       @update:first-server="onFirstServer"
       @reset-match="resetMatch"
     />

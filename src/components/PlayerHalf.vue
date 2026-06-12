@@ -7,6 +7,7 @@ import { isAtGamePoint } from '../utils/scoring'
 const props = defineProps<{
   playerId: PlayerId
   name: string
+  emoji: string
   score: number
   isServing: boolean
   textDirection: LayoutDirection
@@ -74,11 +75,19 @@ const ariaLabel = computed(() => {
           </span>
         </div>
 
-        <span
-          class="player-half__name mt-2 inline-flex items-center whitespace-nowrap text-xl font-semibold leading-8 tracking-wide text-[var(--player-text-muted)]"
-        >
-          {{ name }}
-        </span>
+        <div class="player-half__identity mt-2 flex items-center gap-2">
+          <span
+            class="player-half__emoji inline-flex shrink-0 items-center justify-center leading-none"
+            aria-hidden="true"
+          >
+            {{ emoji }}
+          </span>
+          <span
+            class="player-half__name inline-flex max-w-[min(12rem,42vw)] truncate items-center whitespace-nowrap text-xl font-semibold leading-8 tracking-wide text-[var(--player-text-muted)]"
+          >
+            {{ name }}
+          </span>
+        </div>
 
         <span v-if="hasGamePoint" class="game-point-badge mt-2">
           局点
@@ -109,6 +118,15 @@ const ariaLabel = computed(() => {
 
 .score-digit {
   font-size: clamp(6.75rem, 42vw, 12rem);
+}
+
+.player-half__identity {
+  max-width: min(16rem, 72vw);
+}
+
+.player-half__emoji {
+  font-size: clamp(1.375rem, 4.5vw, 1.875rem);
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.22));
 }
 
 .serve-indicator {

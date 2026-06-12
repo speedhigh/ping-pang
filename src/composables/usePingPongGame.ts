@@ -1,6 +1,5 @@
 import {
   DEFAULT_LAYOUT_DIRECTIONS,
-  DEFAULT_PARTICIPANTS,
   DEFAULT_THEME_ID,
   otherPlayer,
   type CompletedGame,
@@ -9,6 +8,19 @@ import {
   type PlayerId,
   type WinEvent,
 } from '../types/game'
+import type { RosterHero } from '../types/roster'
+import { BUILTIN_HERO_EMOJI } from '../types/roster'
+import {
+  createCustomHeroId,
+  defaultParticipants,
+  defaultRoster,
+  isHeroInUse,
+  migrateParticipantsToRoster,
+  normalizeRoster,
+  participantsFromRosterIds,
+  rosterHeroById,
+  rosterIdForPlayer,
+} from '../utils/roster'
 import { playScoreTapSound } from './useVictorySound'
 import { getCurrentServer } from '../utils/serveRotation'
 import { isGameWon, isMatchWon } from '../utils/scoring'
@@ -32,7 +44,8 @@ function defaultState(): PersistedGameState {
     gameWinsB: 0,
     currentGameIndex: 1,
     matchFormat: 'none',
-    participants: cloneParticipants(DEFAULT_PARTICIPANTS),
+    participants: cloneParticipants(defaultParticipants()),
+    roster: defaultRoster(),
     firstServer: 'A',
     themeId: DEFAULT_THEME_ID,
     layoutDirections: { ...DEFAULT_LAYOUT_DIRECTIONS },
@@ -75,7 +88,8 @@ export function usePingPongGame() {
   const layoutDirections = computed(() =>
     normalizeLayoutDirections(state.value.layoutDirections),
   )
-  const participants = computed(() => state.value.participants ?? DEFAULT_PARTICIPANTS)
+  const participants = computed(() => state.value.participants ?? defaultParticipants())
+  const roster = computed(() => normalizeRoster(state.value.roster))
   const completedGames = computed(() => state.value.completedGames ?? [])
   const sidesSwapped = computed(() => state.value.sidesSwapped ?? false)
   const autoSwapSides = computed(() => state.value.autoSwapSides ?? false)
@@ -99,6 +113,24 @@ export function usePingPongGame() {
 
   function participantName(id: PlayerId): string {
     return state.value.participants.find((p) => p.id === id)?.name ?? id
+  }
+
+  function participantEmoji(id: PlayerId): string {
+    return state.value.participants.find((p) => p.id === id)?.emoji ?? BUILTIN_HERO_EMOJI
+  }
+
+  function slotRosterIds(): { slotA: string; slotB: string } {
+    return {
+      slotA: rosterIdForPlayer(state.value.participants, 'A'),
+      slotB: rosterIdForPlayer(state.value.participants, 'B'),
+    }
+  }
+
+  function syncParticipantsFromRoster() {
+    const { slotA, slotB } = slotRosterIds()
+    patchState({
+      participants: participantsFromRosterIds(normalizeRoster(state.value.roster), slotA, slotB),
+    })
   }
 
   function ensureCompletedGames() {
@@ -229,6 +261,7 @@ export function usePingPongGame() {
     patchState({
       ...defaultState(),
       participants: state.value.participants,
+      roster: normalizeRoster(state.value.roster),
       matchFormat: state.value.matchFormat,
       themeId: state.value.themeId,
       layoutDirections: normalizeLayoutDirections(state.value.layoutDirections),
@@ -280,6 +313,7 @@ export function usePingPongGame() {
     patchState({
       ...defaultState(),
       participants: state.value.participants,
+      roster: normalizeRoster(state.value.roster),
       matchFormat: state.value.matchFormat,
       themeId: state.value.themeId,
       layoutDirections: normalizeLayoutDirections(state.value.layoutDirections),
@@ -298,11 +332,59 @@ export function usePingPongGame() {
     resetMatch()
   }
 
-  function setParticipantName(id: PlayerId, name: string) {
-    const next = state.value.participants.map((p) =>
-      p.id === id ? { ...p, name: name.trim() || (id === 'A' ? '选手A' : '选手B') } : p,
+  function setPlayerSlots(rosterIdA: string, rosterIdB: string) {
+    const heroes = normalizeRoster(state.value.roster)
+    patchState({
+      participants: participantsFromRosterIds(heroes, rosterIdA, rosterIdB),
+    })
+  }
+
+  function addRosterHero(name: string, emoji: string): RosterHero {
+    const hero: RosterHero = {
+      id: createCustomHeroId(),
+      name: name.trim() || '新选手',
+      emoji,
+    }
+    patchState({ roster: [...normalizeRoster(state.value.roster), hero] })
+    return hero
+  }
+
+  function updateRosterHero(id: string, patch: { name?: string; emoji?: string }) {
+    const heroes = normalizeRoster(state.value.roster)
+    const target = heroes.find((h) => h.id === id)
+    if (!target || target.builtin) return false
+
+    const next = heroes.map((h) =>
+      h.id === id
+        ? {
+            ...h,
+            name: patch.name !== undefined ? patch.name.trim() || h.name : h.name,
+            emoji: patch.emoji ?? h.emoji,
+          }
+        : h,
     )
-    patchState({ participants: next })
+    patchState({ roster: next })
+    syncParticipantsFromRoster()
+    return true
+  }
+
+  function deleteRosterHero(id: string): { ok: boolean; message?: string } {
+    const heroes = normalizeRoster(state.value.roster)
+    const target = heroes.find((h) => h.id === id)
+    if (!target) return { ok: false, message: '选手不存在' }
+    if (target.builtin) return { ok: false, message: '内置选手不可删除' }
+
+    const { slotA, slotB } = slotRosterIds()
+    if (isHeroInUse(id, slotA, slotB)) {
+      return { ok: false, message: '请先取消该选手的出场' }
+    }
+
+    patchState({ roster: heroes.filter((h) => h.id !== id) })
+    return { ok: true }
+  }
+
+  function rosterHero(id: string) {
+    return rosterHeroById(normalizeRoster(state.value.roster), id)
   }
 
   function setFirstServer(id: PlayerId) {
@@ -353,6 +435,12 @@ export function usePingPongGame() {
     }
     ensureCompletedGames()
 
+    const migrated = migrateParticipantsToRoster(
+      state.value.participants,
+      state.value.roster,
+    )
+    patchState(migrated)
+
     if (state.value.matchFormat === 'none') return
 
     const winner = isMatchWon(
@@ -378,7 +466,20 @@ export function usePingPongGame() {
     () => state.value.participants,
     (value) => {
       if (!value?.length) {
-        patchState({ participants: cloneParticipants(DEFAULT_PARTICIPANTS) })
+        patchState({
+          participants: cloneParticipants(defaultParticipants()),
+          roster: defaultRoster(),
+        })
+      }
+    },
+    { deep: true },
+  )
+
+  watch(
+    () => state.value.roster,
+    (value) => {
+      if (!value?.length) {
+        patchState({ roster: defaultRoster() })
       }
     },
     { deep: true },
@@ -397,6 +498,7 @@ export function usePingPongGame() {
     themeId,
     layoutDirections,
     participants,
+    roster,
     completedGames,
     sidesSwapped,
     autoSwapSides,
@@ -408,6 +510,8 @@ export function usePingPongGame() {
     isLocked,
     winEvent,
     participantName,
+    participantEmoji,
+    rosterHero,
     score,
     undo,
     dismissWin,
@@ -415,7 +519,10 @@ export function usePingPongGame() {
     resetGame,
     resetMatch,
     setMatchFormat,
-    setParticipantName,
+    setPlayerSlots,
+    addRosterHero,
+    updateRosterHero,
+    deleteRosterHero,
     setFirstServer,
     setThemeId,
     setLayoutDirection,
