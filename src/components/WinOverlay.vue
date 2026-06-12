@@ -16,7 +16,10 @@ const isGameWin = computed(() => props.event.type === 'game')
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--panel-bg)] px-4">
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--panel-bg)] px-4 pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]"
+    style="min-height: 100dvh; min-height: -webkit-fill-available"
+  >
     <div
       class="w-full max-w-sm rounded-3xl bg-[var(--hub-bg)] px-8 py-10 text-center shadow-[var(--hub-shadow)]"
     >
