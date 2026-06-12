@@ -24,6 +24,7 @@ const saving = ref(false)
 const previewUrl = ref<string | null>(null)
 
 const theme = computed(() => getTheme(props.themeId))
+const winnerBg = computed(() => winnerColor(props.event.winnerId))
 
 function winnerLabel(id: PlayerId): string {
   return id === 'A' ? props.nameA : props.nameB
@@ -99,7 +100,7 @@ onUnmounted(() => {
       >
         <div
           :style="{
-            background: theme.playerA,
+            background: winnerBg,
             padding: '20px 24px',
             textAlign: 'center',
             color: '#ffffff',
@@ -193,7 +194,7 @@ onUnmounted(() => {
         <button
           type="button"
           class="w-full rounded-full py-3 text-sm font-semibold text-white transition active:brightness-90"
-          :style="{ background: 'var(--player-a-bg)' }"
+          :style="{ background: winnerBg }"
           @click="emit('newMatch')"
         >
           新的一局
