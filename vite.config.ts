@@ -10,7 +10,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.jpg'],
       manifest: {
         name: '乒乓球计分器',
         short_name: '乒乓球计分器',
@@ -22,15 +22,21 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: 'favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
+            src: 'favicon.jpg',
+            sizes: '512x512',
+            type: 'image/jpeg',
             purpose: 'any',
+          },
+          {
+            src: 'favicon.jpg',
+            sizes: '512x512',
+            type: 'image/jpeg',
+            purpose: 'maskable',
           },
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,svg,jpg,jpeg,png,woff2}'],
       },
     }),
   ],
