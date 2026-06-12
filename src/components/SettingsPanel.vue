@@ -72,12 +72,17 @@ const formatOptions: { value: MatchFormat; label: string }[] = [
       @click.self="emit('close')"
     >
       <div
-        class="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-2xl bg-[var(--panel-bg)] p-6 pb-10 text-[var(--panel-text)] sm:rounded-2xl"
+        class="flex max-h-[90dvh] w-full max-w-md flex-col rounded-t-2xl bg-[var(--panel-bg)] text-[var(--panel-text)] sm:rounded-2xl"
         @click.stop
       >
-        <h3 class="mb-5 text-lg font-semibold">设置</h3>
+        <header
+          class="shrink-0 border-b border-[var(--panel-border)] px-6 pb-4 pt-[max(1.25rem,env(safe-area-inset-top))]"
+        >
+          <h3 class="text-lg font-semibold">设置</h3>
+        </header>
 
-        <div class="space-y-5">
+        <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5">
+          <div class="space-y-5">
           <!-- 主题 -->
           <fieldset>
             <legend class="mb-3 text-xs font-medium text-[var(--panel-muted)]">主题</legend>
@@ -156,63 +161,119 @@ const formatOptions: { value: MatchFormat; label: string }[] = [
 
           <fieldset>
             <legend class="mb-2 text-xs text-[var(--panel-muted)]">大局赛制</legend>
-            <div class="space-y-1">
-              <label
+            <div class="space-y-2">
+              <button
                 v-for="opt in formatOptions"
                 :key="opt.value"
-                class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-sm hover:bg-white/6"
+                type="button"
+                class="flex w-full items-center gap-3 rounded-xl border-2 px-4 py-3 text-left text-sm transition active:scale-[0.99]"
+                :class="
+                  matchFormat === opt.value
+                    ? 'border-[var(--player-a-bg)] bg-[var(--player-a-bg)] font-semibold text-white shadow-sm'
+                    : 'border-[var(--panel-border)] bg-white/5 font-medium text-[var(--panel-muted)]'
+                "
+                @click="emit('update:matchFormat', opt.value)"
               >
-                <input
-                  type="radio"
-                  name="matchFormat"
-                  :value="opt.value"
-                  :checked="matchFormat === opt.value"
-                  class="accent-white"
-                  @change="emit('update:matchFormat', opt.value)"
-                />
+                <span
+                  class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
+                  :class="
+                    matchFormat === opt.value
+                      ? 'border-white bg-white text-[var(--player-a-bg)]'
+                      : 'border-[var(--panel-muted)] bg-transparent'
+                  "
+                >
+                  <svg
+                    v-if="matchFormat === opt.value"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2.5 6.2 4.8 8.5 9.5 3.5"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
                 {{ opt.label }}
-              </label>
+              </button>
             </div>
           </fieldset>
 
           <fieldset>
             <legend class="mb-2 text-xs text-[var(--panel-muted)]">首局发球方</legend>
-            <div class="flex gap-4">
-              <label
+            <div class="grid grid-cols-2 gap-2">
+              <button
                 v-for="id in (['A', 'B'] as PlayerId[])"
                 :key="id"
-                class="flex cursor-pointer items-center gap-2 text-sm"
+                type="button"
+                class="flex items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 text-sm transition active:scale-[0.99]"
+                :class="
+                  firstServer === id
+                    ? id === 'A'
+                      ? 'border-[var(--player-a-bg)] bg-[var(--player-a-bg)] font-semibold text-white shadow-sm'
+                      : 'border-[var(--player-b-bg)] bg-[var(--player-b-bg)] font-semibold text-white shadow-sm'
+                    : 'border-[var(--panel-border)] bg-white/5 font-medium text-[var(--panel-muted)]'
+                "
+                @click="emit('update:firstServer', id)"
               >
-                <input
-                  type="radio"
-                  name="firstServer"
-                  :value="id"
-                  :checked="firstServer === id"
-                  class="accent-white"
-                  @change="emit('update:firstServer', id)"
-                />
+                <span
+                  class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
+                  :class="
+                    firstServer === id
+                      ? 'border-white bg-white'
+                      : 'border-[var(--panel-muted)] bg-transparent'
+                  "
+                  :style="firstServer === id ? { color: id === 'A' ? 'var(--player-a-bg)' : 'var(--player-b-bg)' } : undefined"
+                >
+                  <svg
+                    v-if="firstServer === id"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M2.5 6.2 4.8 8.5 9.5 3.5"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
                 选手 {{ id }}
-              </label>
+              </button>
             </div>
           </fieldset>
+          </div>
         </div>
 
-        <div class="mt-6 flex gap-3">
-          <button
-            type="button"
-            class="flex-1 rounded-full border border-[var(--panel-border)] py-2.5 text-sm text-[var(--panel-muted)]"
-            @click="emit('resetMatch'); emit('close')"
-          >
-            重置比赛
-          </button>
-          <button
-            type="button"
-            class="flex-1 rounded-full bg-white py-2.5 text-sm font-semibold text-[#1c1c1e]"
-            @click="saveNames"
-          >
-            完成
-          </button>
-        </div>
+        <footer
+          class="shrink-0 border-t border-[var(--panel-border)] px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+        >
+          <div class="flex gap-3">
+            <button
+              type="button"
+              class="flex-1 rounded-full border border-[var(--panel-border)] py-2.5 text-sm text-[var(--panel-muted)]"
+              @click="emit('resetMatch'); emit('close')"
+            >
+              重置比赛
+            </button>
+            <button
+              type="button"
+              class="flex-1 rounded-full bg-white py-2.5 text-sm font-semibold text-[#1c1c1e]"
+              @click="saveNames"
+            >
+              完成
+            </button>
+          </div>
+        </footer>
       </div>
     </div>
   </Teleport>
