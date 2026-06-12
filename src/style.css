@@ -95,19 +95,39 @@ button {
   transform: rotate(180deg);
 }
 
-/* 全屏弹层：Teleported 到 body，遮罩延伸进底部安全区 */
+/* 全屏弹层：Teleported 到 body，铺满含安全区 */
 .overlay-fullscreen {
   position: fixed;
+  inset: 0;
   z-index: 50;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: calc(-1 * env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   background: var(--panel-bg);
+  min-height: 100dvh;
+  min-height: 100lvh;
+  min-height: -webkit-fill-available;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  min-height: 100dvh;
-  min-height: -webkit-fill-available;
+  isolation: isolate;
+}
+
+.overlay-fullscreen::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: env(safe-area-inset-bottom, 0px);
+  background: var(--panel-bg);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.overlay-fullscreen > * {
+  position: relative;
+  z-index: 1;
+}
+
+html.victory-overlay-open::after {
+  background: var(--panel-bg);
 }

@@ -85,12 +85,26 @@ const overlayOpen = computed(
     || resetGameConfirmOpen.value,
 )
 
+const victoryOverlayOpen = computed(
+  () => showMatchVictory.value || showSimpleWin.value,
+)
+
 watchEffect(() => {
   const theme = getTheme(themeId.value)
   if (overlayOpen.value) {
     applyOverlayStatusBar(theme)
   } else {
     restoreStatusBar(theme)
+  }
+
+  if (victoryOverlayOpen.value) {
+    document.documentElement.classList.add('victory-overlay-open')
+    document.documentElement.style.background = theme.panelBg
+    document.body.style.background = theme.panelBg
+  } else {
+    document.documentElement.classList.remove('victory-overlay-open')
+    document.documentElement.style.background = ''
+    document.body.style.background = ''
   }
 })
 
