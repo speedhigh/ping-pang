@@ -68,6 +68,20 @@ const FANFARES: Record<VictorySoundKind, number[]> = {
   match: [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98, 1760, 2093],
 }
 
+export function playScoreTapSound() {
+  try {
+    const ctx = getContext()
+    if (ctx.state === 'suspended') {
+      void ctx.resume()
+    }
+
+    const now = ctx.currentTime
+    playTone(ctx, 880, now, 0.05, 0.09, 'sine')
+  } catch {
+    /* 静默失败 */
+  }
+}
+
 export function playVictorySound(kind: VictorySoundKind) {
   try {
     const ctx = getContext()

@@ -11,6 +11,7 @@ import {
   type PlayerId,
   type WinEvent,
 } from '../types/game'
+import { playScoreTapSound } from './useVictorySound'
 import { getCurrentServer } from '../utils/serveRotation'
 import { isGameWon, isMatchWon } from '../utils/scoring'
 import { cloneCompletedGames, cloneParticipants } from '../utils/clone'
@@ -134,6 +135,7 @@ export function usePingPongGame() {
     const winner = isGameWon(nextA, nextB)
     if (!winner) {
       navigator.vibrate?.(8)
+      playScoreTapSound()
       return
     }
 
