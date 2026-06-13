@@ -17,6 +17,8 @@ function heroiconsResolver() {
 }
 
 export default defineConfig({
+  // 相对路径：兼容 GitHub Pages 子路径与 jsDelivr 镜像
+  base: './',
   plugins: [
     vue(),
     AutoImport({

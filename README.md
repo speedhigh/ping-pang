@@ -25,31 +25,44 @@ pnpm dev
 | `pnpm preview` | 本地预览构建产物 |
 | `pnpm test` | 运行单元测试 |
 
-## 发布到线上
+<!-- ## 发布到线上
 
 PWA 必须通过 **HTTPS** 访问（`localhost` 开发除外）。任选一种静态托管即可：
 
-### 方式一：Vercel（推荐，免费）
+### 方式一：GitHub Pages（本仓库已配置）
+
+推送 `main_github` 分支后，GitHub Actions 会自动构建并部署。
+
+| 线路 | 地址 | 说明 |
+|------|------|------|
+| 国际 / 默认 | https://speedhigh.github.io/ping-pang/ | GitHub Pages 官方地址 |
+| 国内加速镜像 | https://cdn.jsdelivr.net/gh/speedhigh/ping-pang@gh-pages/ | jsDelivr CDN，大陆访问通常更快 |
+
+**首次启用**（只需做一次）：仓库 **Settings → Pages → Build and deployment → Source** 选 **GitHub Actions**。
+
+也可在 **Actions** 页手动 **Run workflow** 触发部署。
+
+### 方式二：Vercel（免费）
 
 1. 代码推到 GitHub
 2. 打开 [vercel.com](https://vercel.com)，用 GitHub 登录
 3. **Import** 该仓库，框架选 **Vite**，构建命令 `pnpm build`，输出目录 `dist`
 4. 部署完成后会得到 `https://xxx.vercel.app` 地址
 
-### 方式二：Netlify
+### 方式三：Netlify
 
 1. 代码推到 GitHub
 2. [netlify.com](https://www.netlify.com) → **Add new site** → 连接仓库
 3. Build command: `pnpm build`，Publish directory: `dist`
 4. 部署后获得 `https://xxx.netlify.app`
 
-### 方式三：Cloudflare Pages
+### 方式四：Cloudflare Pages
 
 1. 代码推到 GitHub
 2. Cloudflare Dashboard → **Workers & Pages** → **Create** → Pages
 3. 连接仓库，构建设置同上
 
-### 方式四：自建服务器 / NAS
+### 方式五：自建服务器 / NAS
 
 ```bash
 pnpm build
@@ -62,7 +75,7 @@ pnpm build
 pnpm build
 pnpm preview
 # 手机与电脑同一 WiFi 下，访问 http://<电脑局域网IP>:4173
-```
+``` -->
 
 ## 在手机上使用
 
